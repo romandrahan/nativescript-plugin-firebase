@@ -16,6 +16,7 @@ let _userNotificationCenterDelegateObserver: FirebaseNotificationDelegateObserve
 let _firebaseRemoteMessageDelegate: FIRMessagingDelegateImpl;
 let _showNotifications: boolean = true;
 let _showNotificationsWhenInForeground: boolean = false;
+let _userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler;
 let _autoClearBadge: boolean = true;
 
 let _resolveWhenDidRegisterForNotifications;
@@ -32,6 +33,7 @@ export function initFirebaseMessaging(options) {
   _showNotifications = options.showNotifications === undefined ? _showNotifications : !!options.showNotifications;
   _showNotificationsWhenInForeground = options.showNotificationsWhenInForeground === undefined ? _showNotificationsWhenInForeground : !!options.showNotificationsWhenInForeground;
   _autoClearBadge = options.autoClearBadge === undefined ? _autoClearBadge : !!options.autoClearBadge;
+  _userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler = options.userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler;
 
   if (options.onMessageReceivedCallback !== undefined) {
     addOnMessageReceivedCallback(options.onMessageReceivedCallback);
@@ -550,6 +552,10 @@ class FirebaseNotificationDelegateObserverImpl implements DelegateObserver {
     if (response && response.actionIdentifier === UNNotificationDismissActionIdentifier) {
       completionHandler();
       return;
+    }
+
+    if (_userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler) {
+      _userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler(center, response, completionHandler);
     }
 
     this.callback(response.notification, response.actionIdentifier, (<UNTextInputNotificationResponse>response).userText);

@@ -223,6 +223,7 @@ firebase._cachedDynamicLink = null;
 
 // we need to cache and restore the context, otherwise the next invocation is broken
 firebase._googleSignInIdToken = null;
+firebase._googleSignInServerAuthCode = null;
 firebase._facebookAccessToken = null;
 firebase._appleSignInIdToken = null;
 
@@ -234,67 +235,85 @@ const GOOGLE_SIGNIN_INTENT_ID = 123;
 const authEnabled = lazy(() => typeof (com.google.firebase.auth) !== "undefined" && typeof (com.google.firebase.auth.FirebaseAuth) !== "undefined");
 const messagingEnabled = lazy(() => typeof (com.google.firebase.messaging) !== "undefined");
 const dynamicLinksEnabled = lazy(() => typeof (com.google.firebase.dynamiclinks) !== "undefined");
-
-(() => {
-  // note that this means we need to 'require()' the plugin before the app is loaded
-  Application.on(Application.launchEvent, args => {
-    if (messagingEnabled()) {
-      firebaseMessaging.onAppModuleLaunchEvent(args);
-    }
-    if (dynamicLinksEnabled()) {
-      // let's see if this is part of an email-link authentication flow
-      const emailLink = "" + args.android.getData();
-      if (authEnabled() && com.google.firebase.auth.FirebaseAuth.getInstance().isSignInWithEmailLink(emailLink)) {
-        const rememberedEmail = firebase.getRememberedEmailForEmailLinkLogin();
-        if (rememberedEmail !== undefined) {
-          const emailLinkOnCompleteListener = new gmsTasks.OnCompleteListener({
-            onComplete: task => {
-              if (task.isSuccessful()) {
-                const authResult = task.getResult();
-                firebase.notifyAuthStateListeners({
-                  loggedIn: true,
-                  user: toLoginResult(authResult.getUser(), authResult.getAdditionalUserInfo())
-                });
-              }
-            }
-          });
-          const user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
-          if (user) {
-            const authCredential = com.google.firebase.auth.EmailAuthProvider.getCredentialWithLink(rememberedEmail, emailLink);
-            user.linkWithCredential(authCredential).addOnCompleteListener(emailLinkOnCompleteListener);
-          } else {
-            com.google.firebase.auth.FirebaseAuth.getInstance().signInWithEmailLink(rememberedEmail, emailLink).addOnCompleteListener(emailLinkOnCompleteListener);
-          }
-        }
-
-      } else {
-        const getDynamicLinksCallback = new gmsTasks.OnSuccessListener({
-          onSuccess: pendingDynamicLinkData => {
-            if (pendingDynamicLinkData != null) {
-
-              const deepLink = pendingDynamicLinkData.getLink().toString();
-              const minimumAppVersion = pendingDynamicLinkData.getMinimumAppVersion();
-
-              if (firebase._dynamicLinkCallback === null) {
-                firebase._cachedDynamicLink = {
-                  url: deepLink,
-                  minimumAppVersion: minimumAppVersion
-                };
-              } else {
-                setTimeout(function () {
-                  firebase._dynamicLinkCallback({
-                    url: deepLink,
-                    minimumAppVersion: minimumAppVersion
-                  });
-                });
+const dynamicLinkHandler = args => {
+  if (dynamicLinksEnabled()) {
+    // let's see if this is part of an email-link authentication flow
+    const emailLink = "" + args.android.getData();
+    if (authEnabled() && com.google.firebase.auth.FirebaseAuth.getInstance().isSignInWithEmailLink(emailLink)) {
+      const rememberedEmail = firebase.getRememberedEmailForEmailLinkLogin();
+      if (rememberedEmail !== undefined) {
+        const emailLinkOnCompleteListener = new gmsTasks.OnCompleteListener({
+          onComplete: task => {
+            if (task.isSuccessful()) {
+              const authResult = task.getResult();
+              firebase.notifyAuthStateListeners({
+                loggedIn: true,
+                user: toLoginResult(authResult.getUser(), authResult.getAdditionalUserInfo())
+              });
+            } else {
+              if (firebase._emailLinkErrorCallback) {
+                firebase._emailLinkErrorCallback(
+                  "Logging in the user failed. " +
+                  (task.getException() && task.getException().getReason
+                    ? task.getException().getReason()
+                    : task.getException())
+                );
               }
             }
           }
         });
-        const firebaseDynamicLinks = com.google.firebase.dynamiclinks.FirebaseDynamicLinks.getInstance();
-        firebaseDynamicLinks.getDynamicLink(args.android).addOnSuccessListener(getDynamicLinksCallback);
+        const user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        if (user) {
+          const authCredential = com.google.firebase.auth.EmailAuthProvider.getCredentialWithLink(rememberedEmail, emailLink);
+          user.linkWithCredential(authCredential).addOnCompleteListener(emailLinkOnCompleteListener);
+        } else {
+          com.google.firebase.auth.FirebaseAuth.getInstance().signInWithEmailLink(rememberedEmail, emailLink).addOnCompleteListener(emailLinkOnCompleteListener);
+        }
       }
+
+    } else {
+      const getDynamicLinksCallback = new gmsTasks.OnSuccessListener({
+        onSuccess: pendingDynamicLinkData => {
+          if (pendingDynamicLinkData != null) {
+
+            const deepLink = pendingDynamicLinkData.getLink().toString();
+            const minimumAppVersion = pendingDynamicLinkData.getMinimumAppVersion();
+
+            if (firebase._dynamicLinkCallback === null) {
+              firebase._cachedDynamicLink = {
+                url: deepLink,
+                minimumAppVersion: minimumAppVersion
+              };
+            } else {
+              setTimeout(function () {
+                firebase._dynamicLinkCallback({
+                  url: deepLink,
+                  minimumAppVersion: minimumAppVersion
+                });
+              });
+            }
+          }
+        }
+      });
+      const firebaseDynamicLinks = com.google.firebase.dynamiclinks.FirebaseDynamicLinks.getInstance();
+      firebaseDynamicLinks.getDynamicLink(args.android).addOnSuccessListener(getDynamicLinksCallback);
     }
+  }
+}
+
+(() => {
+  // note that this means we need to 'require()' the plugin before the app is loaded
+
+  Application.on(Application.launchEvent, args => {
+    if (messagingEnabled()) {
+      firebaseMessaging.onAppModuleLaunchEvent(args);
+    }
+  });
+
+  Application.android.on(AndroidApplication.activityNewIntentEvent, (args: any) => {
+    setTimeout(() => {
+      dynamicLinkHandler({ android: args.intent });
+    }, 1000)
   });
 
   Application.on(Application.resumeEvent, args => {
@@ -627,6 +646,10 @@ firebase.unsubscribeFromTopic = firebaseMessaging.unsubscribeFromTopic;
 firebase.areNotificationsEnabled = firebaseMessaging.areNotificationsEnabled;
 
 firebase.functions = firebaseFunctions;
+
+firebase.addOnEmailLinkError = callback => {
+  firebase._emailLinkErrorCallback = callback;
+};
 
 firebase.addOnDynamicLinkReceivedCallback = callback => {
   return new Promise((resolve, reject) => {
@@ -968,7 +991,7 @@ function toLoginResult(user, additionalUserInfo?): User {
     if (pid === 'facebook.com') {
       providers.push({id: pid, token: firebase._facebookAccessToken});
     } else if (pid === 'google.com') {
-      providers.push({id: pid, token: firebase._googleSignInIdToken});
+      providers.push({id: pid, token: firebase._googleSignInIdToken, code: firebase._googleSignInServerAuthCode});
     } else if (pid === 'apple.com') {
       providers.push({id: pid, token: firebase._appleSignInIdToken});
     } else {
@@ -1157,7 +1180,7 @@ firebase.login = arg => {
               if (firebase._verifyPhoneNumberInProgress) {
                 firebase._verifyPhoneNumberInProgress = false;
                 firebase.requestPhoneAuthVerificationCode(userResponse => {
-                  if (userResponse === undefined && firebase.reject) {
+                  if ((userResponse === undefined || userResponse === '') && firebase.reject) {
                     firebase.reject("Prompt was canceled");
                     return;
                   }
@@ -1315,6 +1338,7 @@ firebase.login = arg => {
         // Configure Google Sign In
         const googleSignInOptionsBuilder = new com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(clientId)
+            .requestServerAuthCode(clientId)
             .requestEmail();
 
         if (arg.googleOptions && arg.googleOptions.hostedDomain) {
@@ -1358,6 +1382,7 @@ firebase.login = arg => {
             if (success) {
               const googleSignInAccount = googleSignInResult.getSignInAccount();
               firebase._googleSignInIdToken = googleSignInAccount.getIdToken();
+              firebase._googleSignInServerAuthCode = googleSignInAccount.getServerAuthCode();
               const accessToken = null;
               const authCredential = com.google.firebase.auth.GoogleAuthProvider.getCredential(firebase._googleSignInIdToken, accessToken);
 
