@@ -362,6 +362,7 @@ firebase.addAppDelegateMethods = appDelegate => {
                 if (error) {
                   if (firebase._emailLinkErrorCallback) {
                     firebase._emailLinkErrorCallback(error.localizedDescription);
+                    firebase.fAuth = null;
                   } else {
                     // ignore, and complete the email link sign in flow
                     firebase.fAuth.signInWithEmailLinkCompletion(rememberedEmail, userActivity.webpageURL.absoluteString, (authData: FIRAuthDataResult, error: NSError) => {
@@ -977,7 +978,7 @@ firebase.login = arg => {
 
               // ignore, as this one was probably already linked, so just return the user
               // log("--- linking error: " + error.localizedDescription);
-              // fAuth.signInWithCredentialCompletion(fIRAuthCredential, onCompletionWithAuthResult);
+              // firebase.fAuth.signInWithCredentialCompletion(fIRAuthCredential, onCompletionWithAuthResult);
             } else {
               onCompletionWithAuthResult(authData, error);
             }
@@ -1051,7 +1052,7 @@ firebase.login = arg => {
                   return;
 
                   // ignore, as this one was probably already linked, so just return the user
-                  // fAuth.signInWithCredentialCompletion(fIRAuthCredential, onCompletionWithAuthResult);
+                  // firebase.fAuth.signInWithCredentialCompletion(fIRAuthCredential, onCompletionWithAuthResult);
                 } else {
                   onCompletionWithAuthResult(authData, error);
                 }
@@ -1109,7 +1110,7 @@ firebase.login = arg => {
 
                   // ignore, as this one was probably already linked, so just return the user
                   // log("--- linking error: " + error.localizedDescription);
-                  // fAuth.signInWithCredentialCompletion(fIRAuthCredential, onCompletionWithAuthResult);
+                  // firebase.fAuth.signInWithCredentialCompletion(fIRAuthCredential, onCompletionWithAuthResult);
                 } else {
                   onCompletionWithAuthResult(authData);
                 }
@@ -1226,7 +1227,7 @@ firebase.login = arg => {
                   return;
 
                   // ignore, as this one was probably already linked, so just return the user
-                  // fAuth.signInWithCredentialCompletion(fIRAuthCredential, onCompletionWithAuthResult);
+                  // firebase.fAuth.signInWithCredentialCompletion(fIRAuthCredential, onCompletionWithAuthResult);
                 } else {
                   onCompletionWithAuthResult(user);
                 }
