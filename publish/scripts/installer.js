@@ -369,6 +369,7 @@ function writePodFile(result) {
 
 # Crashlytics
 ` + (isSelected(result.crashlytics) ? `` : `#`) + `pod 'Firebase/Crashlytics'
+` + (isSelected(result.crashlytics) ? `` : `#`) + `pod 'Firebase/Analytics'
 ` + (!isSelected(result.crashlytics) ? `` : `
 # Crashlytics works best without bitcode
 post_install do |installer|
@@ -650,7 +651,8 @@ dependencies {
     ` + (isSelected(result.performance_monitoring) ? `` : `//`) + ` implementation "com.google.firebase:firebase-perf:19.0.5"
 
     // Crashlytics
-    ` + (isSelected(result.crashlytics) ? `` : `//`) + ` implementation "com.google.firebase:firebase-crashlytics:17.2.2"
+    ` + (isSelected(result.crashlytics) ? `` : `//`) + ` implementation "com.google.firebase:firebase-crashlytics:17.3.0"
+    ` + (isSelected(result.crashlytics) ? `` : `//`) + ` implementation "com.google.firebase:firebase-analytics:18.0.0"
 
     // Cloud Messaging (FCM)
     ` + (isSelected(result.messaging) || isSelected(result.external_push_client_only) ? `` : `//`) + ` implementation "com.google.firebase:firebase-messaging:20.1.0"
@@ -972,7 +974,7 @@ module.exports = function($logger, $projectData) {
               let dependenciesNode = buildGradleContent.indexOf("dependencies", 0);
               if (dependenciesNode > -1) {
                   dependenciesNode = buildGradleContent.indexOf("}", dependenciesNode);
-                  buildGradleContent = buildGradleContent.substr(0, dependenciesNode - 1) + '	    classpath "com.google.firebase:firebase-crashlytics-gradle:2.3.0"\\n' + buildGradleContent.substr(dependenciesNode - 1);
+                  buildGradleContent = buildGradleContent.substr(0, dependenciesNode - 1) + '	    classpath "com.google.firebase:firebase-crashlytics-gradle:2.4.1"\\n' + buildGradleContent.substr(dependenciesNode - 1);
               }
             }
 
