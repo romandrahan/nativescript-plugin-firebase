@@ -544,6 +544,10 @@ class FirebaseNotificationDelegateObserverImpl implements DelegateObserver {
   }
 
   public userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler(center: UNUserNotificationCenter, response: UNNotificationResponse, completionHandler: () => void, next: () => void): void {
+    if (_userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler) {
+      _userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler(center, response, completionHandler);
+    }
+
     if (!(response.notification.request.trigger instanceof UNPushNotificationTrigger)) { // not a firebase message!
       next();
       return;
@@ -552,10 +556,6 @@ class FirebaseNotificationDelegateObserverImpl implements DelegateObserver {
     if (response && response.actionIdentifier === UNNotificationDismissActionIdentifier) {
       completionHandler();
       return;
-    }
-
-    if (_userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler) {
-      _userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler(center, response, completionHandler);
     }
 
     this.callback(response.notification, response.actionIdentifier, (<UNTextInputNotificationResponse>response).userText);
