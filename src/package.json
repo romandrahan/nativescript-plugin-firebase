@@ -1,6 +1,6 @@
 {
   "name": "nativescript-firebase-updated-new",
-  "version": "711.1.2",
+  "version": "811.1.2",
   "description": "Fire. Base. Firebase!",
   "main": "firebase",
   "typings": "index.d.ts",
