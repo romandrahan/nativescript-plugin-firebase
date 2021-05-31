@@ -1107,7 +1107,7 @@ firebase.login = arg => {
           return;
         }
 
-        const actionCodeSettings = com.google.firebase.auth.ActionCodeSettings.newBuilder()
+        const newActionCodeSettingsBuilder = com.google.firebase.auth.ActionCodeSettings.newBuilder()
             // URL you want to redirect back to. The domain must be whitelisted in the Firebase Console.
             .setUrl(arg.emailLinkOptions.url)
             .setHandleCodeInApp(true)
@@ -1115,8 +1115,13 @@ firebase.login = arg => {
             .setAndroidPackageName(
                 arg.emailLinkOptions.android ? arg.emailLinkOptions.android.packageName : Application.android.context.getPackageName(),
                 arg.emailLinkOptions.android ? arg.emailLinkOptions.android.installApp || false : false,
-                arg.emailLinkOptions.android ? arg.emailLinkOptions.android.minimumVersion || "1" : "1")
-            .build();
+                arg.emailLinkOptions.android ? arg.emailLinkOptions.android.minimumVersion || "1" : "1");
+
+        if (arg.emailLinkOptions.dynamicLinkDomain) {
+          newActionCodeSettingsBuilder.setDynamicLinkDomain(arg.emailLinkOptions.dynamicLinkDomain)
+        }
+
+        const actionCodeSettings = newActionCodeSettingsBuilder.build()
 
         const onEmailLinkCompleteListener = new gmsTasks.OnCompleteListener({
           onComplete: task => {

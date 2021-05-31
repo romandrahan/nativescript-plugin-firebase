@@ -1011,6 +1011,9 @@ firebase.login = arg => {
             arg.emailLinkOptions.android ? arg.emailLinkOptions.android.packageName : NSBundle.mainBundle.bundleIdentifier,
             arg.emailLinkOptions.android ? arg.emailLinkOptions.android.installApp || false : false,
             arg.emailLinkOptions.android ? arg.emailLinkOptions.android.minimumVersion || "1" : "1");
+        if (arg.emailLinkOptions.dynamicLinkDomain) {
+          firActionCodeSettings.dynamicLinkDomain = arg.emailLinkOptions.dynamicLinkDomain
+        }
         firebase.fAuth.sendSignInLinkToEmailActionCodeSettingsCompletion(
             arg.emailLinkOptions.email,
             firActionCodeSettings,
