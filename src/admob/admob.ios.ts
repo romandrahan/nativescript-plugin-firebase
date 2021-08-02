@@ -21,7 +21,7 @@ export function showBanner(arg: BannerOptions): Promise<any> {
 
       const settings = arg as any;
 
-      if (!firebase.admob.adView[settings.iosBannerId]) {
+      if (!firebase.admob.adView) {
         firebase.admob.adView = {};
       }
 
