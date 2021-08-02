@@ -19,14 +19,21 @@ export function showBanner(arg: BannerOptions): Promise<any> {
         return;
       }
 
-      if (firebase.admob.adView !== null && firebase.admob.adView !== undefined) {
-        firebase.admob.adView.removeFromSuperview();
-        firebase.admob.adView = null;
+      const settings = arg as any;
+
+      if (!firebase.admob.adView[settings.iosBannerId]) {
+        firebase.admob.adView = {};
+      }
+
+      if (firebase.admob.adView[settings.iosBannerId] !== null &&
+        firebase.admob.adView[settings.iosBannerId] !== undefined
+      ) {
+        firebase.admob.adView[settings.iosBannerId].removeFromSuperview();
+        firebase.admob.adView[settings.iosBannerId] = null;
       }
 
       BANNER_DEFAULTS.view = UIApplication.sharedApplication.keyWindow.rootViewController.view;
       // const settings = firebase.merge(arg, BANNER_DEFAULTS);
-      const settings = arg as any;
       _bannerOptions = settings;
       const view = settings.view;
       const bannerType = _getBannerType(settings.size);
@@ -37,9 +44,9 @@ export function showBanner(arg: BannerOptions): Promise<any> {
       const originX = (view.frame.size.width - adWidth) / 2;
       const originY = settings.margins.top > -1 ? settings.margins.top : (settings.margins.bottom > -1 ? view.frame.size.height - adHeight - settings.margins.bottom : 0.0);
       const origin = CGPointMake(originX, originY);
-      firebase.admob.adView = GADBannerView.alloc().initWithAdSizeOrigin(bannerType, origin);
+      firebase.admob.adView[settings.iosBannerId] = GADBannerView.alloc().initWithAdSizeOrigin(bannerType, origin);
 
-      firebase.admob.adView.adUnitID = settings.iosBannerId;
+      firebase.admob.adView[settings.iosBannerId].adUnitID = settings.iosBannerId;
 
       const adRequest = GADRequest.request();
 
@@ -60,10 +67,10 @@ export function showBanner(arg: BannerOptions): Promise<any> {
         adRequest.keywords = settings.keywords;
       }
 
-      firebase.admob.adView.rootViewController = UIApplication.sharedApplication.keyWindow.rootViewController;
+      firebase.admob.adView[settings.iosBannerId].rootViewController = UIApplication.sharedApplication.keyWindow.rootViewController;
       // var statusbarFrame = UIApplication.sharedApplication.statusBarFrame;
 
-      firebase.admob.adView.loadRequest(adRequest);
+      firebase.admob.adView[settings.iosBannerId].loadRequest(adRequest);
 
       // with interstitials you MUST wait for the ad to load before showing it, so requiring this delegate
       let delegate = GADBannerViewDelegateImpl.new().initWithOptionsAndCallback(
@@ -81,9 +88,9 @@ export function showBanner(arg: BannerOptions): Promise<any> {
           });
 
       CFRetain(delegate);
-      firebase.admob.adView.delegate = delegate;
+      firebase.admob.adView[settings.iosBannerId].delegate = delegate;
 
-      view.addSubview(firebase.admob.adView);
+      view.addSubview(firebase.admob.adView[settings.iosBannerId]);
     } catch (ex) {
       console.log("Error in firebase.admob.showBanner: " + ex);
       reject(ex);
@@ -291,13 +298,13 @@ export function showRewardedVideoAd(arg?: ShowRewardedVideoAdOptions): Promise<a
   });
 }
 
-export function hideBanner(): Promise<any> {
+export function hideBanner(settings): Promise<any> {
   return new Promise((resolve, reject) => {
     try {
-      if (firebase.admob.adView !== null) {
-        // adView.delegate = null;
-        firebase.admob.adView.removeFromSuperview();
-        firebase.admob.adView = null;
+      if (firebase.admob.adView !== null && firebase.admob.adView[settings.iosBannerId]) {
+        // adView[settings.iosBannerId].delegate = null;
+        firebase.admob.adView[settings.iosBannerId].removeFromSuperview();
+        firebase.admob.adView[settings.iosBannerId] = null;
       }
       resolve();
     } catch (ex) {
