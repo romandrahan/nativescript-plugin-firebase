@@ -298,7 +298,7 @@ export function showRewardedVideoAd(arg?: ShowRewardedVideoAdOptions): Promise<a
   });
 }
 
-export function hideBanner(settings): Promise<any> {
+export function hideBanner(settings: BannerOptions): Promise<any> {
   return new Promise((resolve, reject) => {
     try {
       if (firebase.admob.adView !== null && firebase.admob.adView[settings.iosBannerId]) {

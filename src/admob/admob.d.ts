@@ -103,6 +103,8 @@ export interface BannerOptions extends AdLifeCycleEvents {
    * Specify keywords for ad targeting
    */
   keywords?: string[];
+
+  view?: any;
 }
 
 export interface InterstitialOptions extends AdLifeCycleEvents {

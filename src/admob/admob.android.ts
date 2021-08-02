@@ -10,20 +10,27 @@ export { AD_SIZE };
 export function showBanner(arg: BannerOptions): Promise<any> {
   return new Promise((resolve, reject) => {
     try {
-      const settings = firebase.merge(arg, BANNER_DEFAULTS);
+      // const settings = firebase.merge(arg, BANNER_DEFAULTS);
+      const settings = arg;
+
+      if (!firebase.admob.adView) {
+        firebase.admob.adView = {};
+      }
 
       // always close a previously opened banner
-      if (firebase.admob.adView !== null && firebase.admob.adView !== undefined) {
-        const parent = firebase.admob.adView.getParent();
+      if (firebase.admob.adView[settings.androidBannerId] !== null &&
+        firebase.admob.adView[settings.androidBannerId] !== undefined
+      ) {
+        const parent = firebase.admob.adView[settings.androidBannerId].getParent();
         if (parent !== null) {
-          parent.removeView(firebase.admob.adView);
+          parent.removeView(firebase.admob.adView[settings.androidBannerId]);
         }
       }
 
-      firebase.admob.adView = new com.google.android.gms.ads.AdView(Application.android.foregroundActivity);
-      firebase.admob.adView.setAdUnitId(settings.androidBannerId);
+      firebase.admob.adView[settings.androidBannerId] = new com.google.android.gms.ads.AdView(Application.android.foregroundActivity);
+      firebase.admob.adView[settings.androidBannerId].setAdUnitId(settings.androidBannerId);
       const bannerType = _getBannerType(settings.size);
-      firebase.admob.adView.setAdSize(bannerType);
+      firebase.admob.adView[settings.androidBannerId].setAdSize(bannerType);
 
       // need these to support showing a banner more than once
       this.resolve = resolve;
@@ -38,18 +45,18 @@ export function showBanner(arg: BannerOptions): Promise<any> {
         onAdOpened: () => arg.onOpened && arg.onOpened(),
         onAdLeftApplication: () => arg.onLeftApplication && arg.onLeftApplication(),
         onAdClosed: () => {
-          if (firebase.admob.adView) {
-            firebase.admob.adView.setAdListener(null);
-            firebase.admob.adView = null;
+          if (firebase.admob.adView[settings.androidBannerId]) {
+            firebase.admob.adView[settings.androidBannerId].setAdListener(null);
+            firebase.admob.adView[settings.androidBannerId] = null;
           }
           arg.onClosed && arg.onClosed();
         }
       });
 
-      firebase.admob.adView.setAdListener(new BannerAdListener());
+      firebase.admob.adView[settings.androidBannerId].setAdListener(new BannerAdListener());
 
       const ad = _buildAdRequest(settings);
-      firebase.admob.adView.loadAd(ad);
+      firebase.admob.adView[settings.androidBannerId].loadAd(ad);
 
       const density = Utils.layout.getDisplayDensity(),
           top = settings.margins.top * density,
@@ -70,7 +77,7 @@ export function showBanner(arg: BannerOptions): Promise<any> {
       }
 
       const adViewLayout = new android.widget.RelativeLayout(Application.android.foregroundActivity);
-      adViewLayout.addView(firebase.admob.adView, relativeLayoutParams);
+      adViewLayout.addView(firebase.admob.adView[settings.androidBannerId], relativeLayoutParams);
 
       const relativeLayoutParamsOuter = new android.widget.RelativeLayout.LayoutParams(
           android.widget.RelativeLayout.LayoutParams.MATCH_PARENT,
@@ -80,7 +87,9 @@ export function showBanner(arg: BannerOptions): Promise<any> {
       // Also, in NativeScript 4+ it may be undefined anyway.. so using the appModule in that case.
       setTimeout(() => {
         const top = Frame.topmost();
-        if (top !== undefined && top.currentPage && top.currentPage.android && top.currentPage.android.getParent()) {
+        if (settings.view) {
+          settings.view.addView(adViewLayout, relativeLayoutParamsOuter);
+        } else if (top !== undefined && top.currentPage && top.currentPage.android && top.currentPage.android.getParent()) {
           top.currentPage.android.getParent().addView(adViewLayout, relativeLayoutParamsOuter);
         } else if (Application.android && Application.android.foregroundActivity) {
           Application.android.foregroundActivity.getWindow().getDecorView().addView(adViewLayout, relativeLayoutParamsOuter);
@@ -283,15 +292,15 @@ export function showRewardedVideoAd(arg?: ShowRewardedVideoAdOptions): Promise<a
   });
 }
 
-export function hideBanner(): Promise<any> {
+export function hideBanner(settings: BannerOptions): Promise<any> {
   return new Promise((resolve, reject) => {
     try {
-      if (firebase.admob.adView !== null) {
-        const parent = firebase.admob.adView.getParent();
+      if (firebase.admob.adView && firebase.admob.adView[settings.androidBannerId] !== null) {
+        const parent = firebase.admob.adView[settings.androidBannerId].getParent();
         if (parent !== null) {
-          parent.removeView(firebase.admob.adView);
+          parent.removeView(firebase.admob.adView[settings.androidBannerId]);
         }
-        firebase.admob.adView = null;
+        firebase.admob.adView[settings.androidBannerId] = null;
       }
       resolve();
     } catch (ex) {
