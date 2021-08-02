@@ -25,7 +25,8 @@ export function showBanner(arg: BannerOptions): Promise<any> {
       }
 
       BANNER_DEFAULTS.view = UIApplication.sharedApplication.keyWindow.rootViewController.view;
-      const settings = firebase.merge(arg, BANNER_DEFAULTS);
+      // const settings = firebase.merge(arg, BANNER_DEFAULTS);
+      const settings = arg as any;
       _bannerOptions = settings;
       const view = settings.view;
       const bannerType = _getBannerType(settings.size);
