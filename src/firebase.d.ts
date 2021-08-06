@@ -687,6 +687,8 @@ export namespace firebase {
     listener: AuthStateChangeListener
   ): boolean;
 
+  export function removeAllAuthStateListeners(): void;
+
   export function hasAuthStateListener(
     listener: AuthStateChangeListener
   ): boolean;

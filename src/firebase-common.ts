@@ -99,6 +99,9 @@ export const firebase: any = {
       return false;
     }
   },
+  removeAllAuthStateListeners: () => {
+    firebase.authStateListeners = [];
+  },
   hasAuthStateListener: listener => {
     return firebase.authStateListeners.indexOf(listener) >= 0;
   },
