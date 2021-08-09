@@ -301,7 +301,7 @@ export function showRewardedVideoAd(arg?: ShowRewardedVideoAdOptions): Promise<a
 export function hideBanner(settings: BannerOptions): Promise<any> {
   return new Promise((resolve, reject) => {
     try {
-      if (firebase.admob.adView !== null && firebase.admob.adView[settings.iosBannerId]) {
+      if (firebase.admob.adView && firebase.admob.adView[settings.iosBannerId]) {
         // adView[settings.iosBannerId].delegate = null;
         firebase.admob.adView[settings.iosBannerId].removeFromSuperview();
         firebase.admob.adView[settings.iosBannerId] = null;
@@ -317,11 +317,11 @@ export function hideBanner(settings: BannerOptions): Promise<any> {
 function _getBannerType(size): any {
   // see nativescript-admob's iOS sourcecode for why we're not using SDK-provided constants here
   if (size === AD_SIZE.BANNER) {
-    // return kGADAdSizeBanner;
-    return {"size": {"width": 320, "height": 50}, "flags": 0};
+    return kGADAdSizeBanner;
+    // return {"size": {"width": 320, "height": 50}, "flags": 0};
   } else if (size === AD_SIZE.LARGE_BANNER) {
-    // return kGADAdSizeLargeBanner;
-    return {"size": {"width": 320, "height": 100}, "flags": 0};
+    return kGADAdSizeLargeBanner;
+    // return {"size": {"width": 320, "height": 100}, "flags": 0};
   } else if (size === AD_SIZE.MEDIUM_RECTANGLE) {
     // return kGADAdSizeMediumRectangle;
     return {"size": {"width": 300, "height": 250}, "flags": 0};
