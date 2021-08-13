@@ -36,7 +36,7 @@ export function showBanner(arg: BannerOptions): Promise<any> {
       // const settings = firebase.merge(arg, BANNER_DEFAULTS);
       _bannerOptions = settings;
       const view = settings.view;
-      const bannerType = _getBannerType(settings.size);
+      const bannerType = _getBannerType(settings.size, settings.iosSizeFunctions);
 
       const adWidth = bannerType.size.width === 0 ? view.frame.size.width : bannerType.size.width;
       const adHeight = bannerType.size.smartHeight ? bannerType.size.smartHeight : bannerType.size.height;
@@ -314,14 +314,13 @@ export function hideBanner(settings: BannerOptions): Promise<any> {
   });
 }
 
-function _getBannerType(size): any {
+function _getBannerType(size, iosSizeFunctions?): any {
   // see nativescript-admob's iOS sourcecode for why we're not using SDK-provided constants here
   if (size === AD_SIZE.BANNER) {
-    return kGADAdSizeBanner;
-    // return {"size": {"width": 320, "height": 50}, "flags": 0};
-  } else if (size === AD_SIZE.LARGE_BANNER) {
-    return kGADAdSizeLargeBanner;
-    // return {"size": {"width": 320, "height": 100}, "flags": 0};
+    return iosSizeFunctions[size]()
+  }
+  else if (size === AD_SIZE.LARGE_BANNER) {
+    return iosSizeFunctions[size]()
   } else if (size === AD_SIZE.MEDIUM_RECTANGLE) {
     // return kGADAdSizeMediumRectangle;
     return {"size": {"width": 300, "height": 250}, "flags": 0};
