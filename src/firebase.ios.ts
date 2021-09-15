@@ -650,7 +650,8 @@ firebase.getRemoteConfig = arg => {
 
       // Enable developer mode to allow for frequent refreshes of the cache
       // TODO this is deprecated (but not removed yet), see https://firebase.google.com/support/release-notes/ios#remote-config_2
-      firebaseRemoteConfig.configSettings = new FIRRemoteConfigSettings({developerModeEnabled: arg.developerMode || false});
+      // firebaseRemoteConfig.configSettings = new FIRRemoteConfigSettings({developerModeEnabled: arg.developerMode || false});
+      firebaseRemoteConfig.configSettings = FIRRemoteConfigSettings.alloc().init();
 
       const dic: any = NSMutableDictionary.new();
       for (let p in arg.properties) {
@@ -665,22 +666,28 @@ firebase.getRemoteConfig = arg => {
         if (remoteConfigFetchStatus === FIRRemoteConfigFetchStatus.Success ||
             remoteConfigFetchStatus === FIRRemoteConfigFetchStatus.Throttled) {
 
-          const activated = firebaseRemoteConfig.activateFetched();
+          // const activated = firebaseRemoteConfig.activateFetched();
 
-          const result = {
-            lastFetch: firebaseRemoteConfig.lastFetchTime,
-            throttled: remoteConfigFetchStatus === FIRRemoteConfigFetchStatus.Throttled,
-            properties: {}
-          };
+          firebaseRemoteConfig.activateWithCompletion((changed, error) => {
+            if (error) {
+              return reject(error ? error.localizedDescription : "activateWithCompletion unknown error");
+            }
 
-          for (let p in arg.properties) {
-            const prop = arg.properties[p];
-            const key = prop.key;
-            const value = firebaseRemoteConfig.configValueForKey(key).stringValue;
-            // we could have the user pass in the type but this seems easier to use
-            result.properties[key] = firebase.strongTypeify(value);
-          }
-          resolve(result);
+            const result = {
+                lastFetch: firebaseRemoteConfig.lastFetchTime,
+                throttled: remoteConfigFetchStatus === FIRRemoteConfigFetchStatus.Throttled,
+                properties: {}
+            };
+
+            for (let p in arg.properties) {
+                const prop = arg.properties[p];
+                const key = prop.key;
+                const value = firebaseRemoteConfig.configValueForKey(key).stringValue;
+                // we could have the user pass in the type but this seems easier to use
+                result.properties[key] = firebase.strongTypeify(value);
+            }
+            resolve(result);
+          })
 
         } else {
           reject(error ? error.localizedDescription : "Unknown error, fetch status: " + remoteConfigFetchStatus);

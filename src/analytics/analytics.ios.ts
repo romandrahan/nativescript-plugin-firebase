@@ -218,6 +218,8 @@ export function setUserProperty(options: SetUserPropertyOptions): Promise<void> 
 }
 
 export function setScreenName(options: SetScreenNameOptions): Promise<void> {
+  console.log('setScreenName is deprecated, see https://stackoverflow.com/questions/63168114/firebase-analytics-setscreenname-deprecated')
+
   return new Promise<void>((resolve, reject) => {
     if (!isAnalyticsAvailable()) {
       reject(ENABLE_ANALYTICS_HINT);
