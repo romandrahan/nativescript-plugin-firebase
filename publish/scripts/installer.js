@@ -394,7 +394,7 @@ end`) + `
 ` + (isSelected(result.functions) ? `` : `#`) + `pod 'Firebase/Functions'
 
 # AdMob
-` + (isSelected(result.admob) ? `` : `#`) + `pod 'Firebase/AdMob'
+` + (isSelected(result.admob) ? `` : `#`) + `pod 'Google-Mobile-Ads-SDK'
 
 # Dynamic Links
 ` + (isSelected(result.dynamic_links) ? `` : `#`) + `pod 'Firebase/DynamicLinks'
