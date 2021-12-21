@@ -6,7 +6,7 @@ import { firebaseUtils } from "./utils";
 import { getNonce, Sha256 } from "./utils/nonce-util-ios";
 import { firestore } from "./firebase";
 
-declare const ASAuthorizationAppleIDProvider, ASAuthorizationScopeFullName, ASAuthorizationScopeEmail, ASAuthorizationController, ASAuthorizationControllerDelegate, ASAuthorizationAppleIDCredential, ASAuthorizationControllerPresentationContextProviding: any;
+declare const ASAuthorizationAppleIDProvider, ASAuthorizationScopeFullName, ASAuthorizationScopeEmail, ASAuthorizationController, ASAuthorizationControllerDelegate, ASAuthorizationAppleIDCredential, ASAuthorizationControllerPresentationContextProviding, global: any;
 export enum QueryOrderByType {
   KEY,
   VALUE,
@@ -606,7 +606,7 @@ firebase.init = arg => {
       }
 
       // Facebook Auth
-      if (typeof (FBSDKAppEvents) !== "undefined") {
+      if (typeof (FBSDKAppEvents) !== "undefined" && !global.FIREBASE_PLUGIN_FACEBOOK_AUTH_DISABLED) {
         FBSDKAppEvents.activateApp();
       }
 
