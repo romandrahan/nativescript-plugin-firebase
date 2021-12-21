@@ -46,7 +46,7 @@ export function validateAnalyticsKey(key: string): string | undefined {
     "notification_open",
     "notification_receive",
     "os_update",
-    "screen_view",
+    // "screen_view",
     "session_start",
     "user_engagement"
   ].indexOf(key) > -1) {
