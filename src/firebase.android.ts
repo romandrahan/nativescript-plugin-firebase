@@ -5,6 +5,8 @@ import * as firebaseFunctions from "./functions/functions";
 import * as firebaseMessaging from "./messaging/messaging";
 import { firestore } from "./firebase";
 
+declare const global: any;
+
 export enum QueryOrderByType {
   KEY,
   VALUE,
@@ -233,7 +235,7 @@ let initializeArguments: any;
 const GOOGLE_SIGNIN_INTENT_ID = 123;
 
 const authEnabled = lazy(() => typeof (com.google.firebase.auth) !== "undefined" && typeof (com.google.firebase.auth.FirebaseAuth) !== "undefined");
-const messagingEnabled = lazy(() => typeof (com.google.firebase.messaging) !== "undefined");
+const messagingEnabled = lazy(() => !global.FIREBASE_PLUGIN_MESSAGING_DISABLED && typeof (com.google.firebase.messaging) !== "undefined");
 const dynamicLinksEnabled = lazy(() => typeof (com.google.firebase.dynamiclinks) !== "undefined");
 const dynamicLinkHandler = args => {
   if (dynamicLinksEnabled()) {
