@@ -46,7 +46,9 @@ export function initFirebaseMessaging(options?: fbNamespace.MessagingOptions) {
 }
 
 export function onAppModuleLaunchEvent(args: any) {
-  org.nativescript.plugins.firebase.FirebasePluginLifecycleCallbacks.registerCallbacks(Application.android.nativeApp);
+  if (org.nativescript.plugins) {
+    org.nativescript.plugins.firebase.FirebasePluginLifecycleCallbacks.registerCallbacks(Application.android.nativeApp);
+  }
 }
 
 export function onAppModuleResumeEvent(args: any) {
