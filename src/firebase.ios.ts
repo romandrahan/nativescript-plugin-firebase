@@ -1115,6 +1115,11 @@ firebase.login = arg => {
               // link credential, note that you only want to do this if this user doesn't already use fb as an auth provider
               const onCompletionLink = (authData: FIRAuthDataResult, error: NSError) => {
                 if (error) {
+                  if (error.localizedDescription.includes('ERROR_PROVIDER_ALREADY_LINKED')) {
+                    firebase.fAuth.signInWithCredentialCompletion(fIRAuthCredential, onCompletionWithAuthResult);
+                    return;
+                  }
+
                   reject(error.localizedDescription);
                   return;
 
