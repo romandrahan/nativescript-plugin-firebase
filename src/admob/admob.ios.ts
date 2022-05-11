@@ -322,8 +322,7 @@ function _getBannerType(size, iosSizeFunctions?): any {
   else if (size === AD_SIZE.LARGE_BANNER) {
     return iosSizeFunctions[size]()
   } else if (size === AD_SIZE.MEDIUM_RECTANGLE) {
-    // return kGADAdSizeMediumRectangle;
-    return {"size": {"width": 300, "height": 250}, "flags": 0};
+    return iosSizeFunctions[size]()
   } else if (size === AD_SIZE.FULL_BANNER) {
     // return kGADAdSizeFullBanner;
     return {"size": {"width": 468, "height": 60}, "flags": 0};
